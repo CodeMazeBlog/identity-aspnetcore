@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using IdentityByExamples.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -30,9 +31,17 @@ namespace IdentityByExamples
             services.AddDbContext<ApplicationContext>(opts =>
                 opts.UseSqlServer(Configuration.GetConnectionString("sqlConnection")));
 
-            services.AddIdentity<User, IdentityRole>()
+            services.AddIdentity<User, IdentityRole>(opt =>
+            {
+                opt.Password.RequiredLength = 7;
+                opt.Password.RequireDigit = false;
+                opt.Password.RequireUppercase = false;
+
+                opt.User.RequireUniqueEmail = true;
+            })
              .AddEntityFrameworkStores<ApplicationContext>();
 
+            services.AddAutoMapper(typeof(Startup));
 
             services.AddControllersWithViews();
         }
