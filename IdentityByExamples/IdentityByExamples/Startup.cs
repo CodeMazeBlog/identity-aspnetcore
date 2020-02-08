@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using EmailService;
 using IdentityByExamples.Factory;
 using IdentityByExamples.Models;
 using Microsoft.AspNetCore.Builder;
@@ -40,11 +41,22 @@ namespace IdentityByExamples
 
                 opt.User.RequireUniqueEmail = true;
             })
-             .AddEntityFrameworkStores<ApplicationContext>();
+             .AddEntityFrameworkStores<ApplicationContext>()
+             .AddDefaultTokenProviders()
+             .AddDefaultTokenProviders();
+
+            services.Configure<DataProtectionTokenProviderOptions>(opt =>
+               opt.TokenLifespan = TimeSpan.FromHours(2));
 
             services.AddScoped<IUserClaimsPrincipalFactory<User>, CustomClaimsFactory>();
 
             services.AddAutoMapper(typeof(Startup));
+
+            var emailConfig = Configuration
+                .GetSection("EmailConfiguration")
+                .Get<EmailConfiguration>();
+            services.AddSingleton(emailConfig);
+            services.AddScoped<IEmailSender, EmailSender>();
 
             services.AddControllersWithViews();
         }
