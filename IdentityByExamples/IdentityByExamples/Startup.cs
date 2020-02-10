@@ -42,7 +42,6 @@ namespace IdentityByExamples
                 opt.User.RequireUniqueEmail = true;
             })
              .AddEntityFrameworkStores<ApplicationContext>()
-             .AddDefaultTokenProviders()
              .AddDefaultTokenProviders();
 
             services.Configure<DataProtectionTokenProviderOptions>(opt =>
