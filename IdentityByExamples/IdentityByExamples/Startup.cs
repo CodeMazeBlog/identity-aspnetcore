@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using EmailService;
+using IdentityByExamples.CustomTokenProviders;
 using IdentityByExamples.Factory;
 using IdentityByExamples.Models;
 using Microsoft.AspNetCore.Builder;
@@ -40,13 +41,20 @@ namespace IdentityByExamples
                 opt.Password.RequireUppercase = false;
 
                 opt.User.RequireUniqueEmail = true;
+
+                opt.SignIn.RequireConfirmedEmail = true;
+
+                opt.Tokens.EmailConfirmationTokenProvider = "emailconfirmation";
             })
              .AddEntityFrameworkStores<ApplicationContext>()
              .AddDefaultTokenProviders()
-             .AddDefaultTokenProviders();
+             .AddTokenProvider<EmailConfirmationTokenProvider<User>>("emailconfirmation");
 
             services.Configure<DataProtectionTokenProviderOptions>(opt =>
                opt.TokenLifespan = TimeSpan.FromHours(2));
+
+            services.Configure<EmailConfirmationTokenProviderOptions>(opt =>
+                opt.TokenLifespan = TimeSpan.FromDays(3));
 
             services.AddScoped<IUserClaimsPrincipalFactory<User>, CustomClaimsFactory>();
 

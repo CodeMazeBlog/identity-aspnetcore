@@ -55,9 +55,32 @@ namespace IdentityByExamples.Controllers
                 return View(userModel);
             }
 
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var confirmationLink = Url.Action(nameof(ConfirmEmail), "Account", new { token, email = user.Email }, Request.Scheme);
+
+            var message = new Message(new string[] { user.Email }, "Confirmation email link", confirmationLink, null);
+            await _emailSender.SendEmailAsync(message);
+
             await _userManager.AddToRoleAsync(user, "Visitor");
 
-            return RedirectToAction(nameof(HomeController.Index), "Home");
+            return RedirectToAction(nameof(SuccessRegistration));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ConfirmEmail(string token, string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+                return View("Error");
+
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+            return View(result.Succeeded ? nameof(ConfirmEmail) : "Error");
+        }
+
+        [HttpGet]
+        public IActionResult SuccessRegistration()
+        {
+            return View();
         }
 
         [HttpGet]
@@ -83,7 +106,7 @@ namespace IdentityByExamples.Controllers
             }
             else
             {
-                ModelState.AddModelError("", "Invalid UserName or Password");
+                ModelState.AddModelError("", "Invalid Login Attempt");
                 return View();
             }
         }
@@ -147,7 +170,7 @@ namespace IdentityByExamples.Controllers
                 RedirectToAction(nameof(ResetPasswordConfirmation));
 
             var resetPassResult = await _userManager.ResetPasswordAsync(user, resetPasswordModel.Token, resetPasswordModel.Password);
-            if(!resetPassResult.Succeeded)
+            if (!resetPassResult.Succeeded)
             {
                 foreach (var error in resetPassResult.Errors)
                 {
@@ -172,6 +195,12 @@ namespace IdentityByExamples.Controllers
                 return Redirect(returnUrl);
             else
                 return RedirectToAction(nameof(HomeController.Index), "Home");
+        }
+
+        [HttpGet]
+        public IActionResult Error()
+        {
+            return View();
         }
     }
 }
