@@ -99,10 +99,22 @@ namespace IdentityByExamples.Controllers
                 return View(userModel);
             }
 
-            var result = await _signInManager.PasswordSignInAsync(userModel.Email, userModel.Password, userModel.RememberMe, false);
+            var result = await _signInManager.PasswordSignInAsync(userModel.Email, userModel.Password, userModel.RememberMe, lockoutOnFailure: true);
             if (result.Succeeded)
             {
                 return RedirectToLocal(returnUrl);
+            }
+
+            if (result.IsLockedOut)
+            {
+                var forgotPassLink = Url.Action(nameof(ForgotPassword),"Account", new { }, Request.Scheme);
+                var content = string.Format("Your account is locked out, to reset your password, please click this link: {0}", forgotPassLink);
+
+                var message = new Message(new string[] { userModel.Email }, "Locked out account information", content, null);
+                await _emailSender.SendEmailAsync(message);
+
+                ModelState.AddModelError("", "The account is locked out");
+                return View();
             }
             else
             {
