@@ -105,14 +105,76 @@ namespace IdentityByExamples.Controllers
                 return RedirectToLocal(returnUrl);
             }
 
+            if (result.RequiresTwoFactor)
+            {
+                return RedirectToAction(nameof(LoginTwoStep), new { userModel.Email, userModel.RememberMe, returnUrl });
+            }
+
             if (result.IsLockedOut)
             {
-                var forgotPassLink = Url.Action(nameof(ForgotPassword),"Account", new { }, Request.Scheme);
+                var forgotPassLink = Url.Action(nameof(ForgotPassword), "Account", new { }, Request.Scheme);
                 var content = string.Format("Your account is locked out, to reset your password, please click this link: {0}", forgotPassLink);
 
                 var message = new Message(new string[] { userModel.Email }, "Locked out account information", content, null);
                 await _emailSender.SendEmailAsync(message);
 
+                ModelState.AddModelError("", "The account is locked out");
+                return View();
+            }
+            else
+            {
+                ModelState.AddModelError("", "Invalid Login Attempt");
+                return View();
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> LoginTwoStep(string email, bool rememberMe, string returnUrl = null)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return View(nameof(Error));
+            }
+
+            var providers = await _userManager.GetValidTwoFactorProvidersAsync(user);
+            if (!providers.Contains("Email"))
+            {
+                return View(nameof(Error));
+            }
+
+            var token = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
+
+            var message = new Message(new string[] { email }, "Authentication token", token, null);
+            await _emailSender.SendEmailAsync(message);
+
+            ViewData["ReturnUrl"] = returnUrl;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LoginTwoStep(TwoStepModel twoStepModel, string returnUrl = null)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(twoStepModel);
+            }
+
+            var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+            if(user == null)
+            {
+                return RedirectToAction(nameof(Error));
+            }
+
+            var result = await _signInManager.TwoFactorSignInAsync("Email", twoStepModel.TwoFactorCode, twoStepModel.RememberMe, rememberClient: false);
+            if(result.Succeeded)
+            {
+                return RedirectToLocal(returnUrl);
+            }
+            else if(result.IsLockedOut)
+            {
+                //Same logic as in the Login action
                 ModelState.AddModelError("", "The account is locked out");
                 return View();
             }
