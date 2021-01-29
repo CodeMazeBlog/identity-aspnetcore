@@ -42,9 +42,9 @@ namespace IdentityByExamples
             })
              .AddEntityFrameworkStores<ApplicationContext>();
 
-            services.AddScoped<IUserClaimsPrincipalFactory<User>, CustomClaimsFactory>();
+			services.AddScoped<IUserClaimsPrincipalFactory<User>, CustomClaimsFactory>();
 
-            services.AddAutoMapper(typeof(Startup));
+			services.AddAutoMapper(typeof(Startup));
 
             services.AddControllersWithViews();
         }

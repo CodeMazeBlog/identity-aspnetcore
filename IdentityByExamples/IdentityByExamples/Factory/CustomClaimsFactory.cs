@@ -22,6 +22,12 @@ namespace IdentityByExamples.Factory
             identity.AddClaim(new Claim("firstname", user.FirstName));
             identity.AddClaim(new Claim("lastname", user.LastName));
 
+            var roles = await UserManager.GetRolesAsync(user);
+			foreach (var role in roles)
+			{
+                identity.AddClaim(new Claim(ClaimTypes.Role, role));
+            }
+            
             return identity;
         }
     }
