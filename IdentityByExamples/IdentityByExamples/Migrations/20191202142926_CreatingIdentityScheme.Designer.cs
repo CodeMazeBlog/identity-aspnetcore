@@ -4,14 +4,16 @@ using IdentityByExamples.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace IdentityByExamples.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    partial class ApplicationContextModelSnapshot : ModelSnapshot
+    [Migration("20191202142926_CreatingIdentityScheme")]
+    partial class CreatingIdentityScheme
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -153,22 +155,6 @@ namespace IdentityByExamples.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "5e0246f5-e1b9-46ba-867e-81d1917aaaf7",
-                            ConcurrencyStamp = "1dee1e04-abee-43db-b5d7-69c719165b88",
-                            Name = "Visitor",
-                            NormalizedName = "VISITOR"
-                        },
-                        new
-                        {
-                            Id = "be7b6b91-2662-4760-8ee1-d966075e524e",
-                            ConcurrencyStamp = "84ff6b93-365d-454a-b810-8bbe8d206491",
-                            Name = "Administrator",
-                            NormalizedName = "ADMINISTRATOR"
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

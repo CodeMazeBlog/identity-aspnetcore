@@ -2,10 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
+using IdentityByExamples.Factory;
 using IdentityByExamples.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,6 +32,20 @@ namespace IdentityByExamples
             services.AddDbContext<ApplicationContext>(opts =>
                 opts.UseSqlServer(Configuration.GetConnectionString("sqlConnection")));
 
+            services.AddIdentity<User, IdentityRole>(opt =>
+            {
+                opt.Password.RequiredLength = 7;
+                opt.Password.RequireDigit = false;
+                opt.Password.RequireUppercase = false;
+
+                opt.User.RequireUniqueEmail = true;
+            })
+             .AddEntityFrameworkStores<ApplicationContext>();
+
+			services.AddScoped<IUserClaimsPrincipalFactory<User>, CustomClaimsFactory>();
+
+			services.AddAutoMapper(typeof(Startup));
+
             services.AddControllersWithViews();
         }
 
@@ -49,6 +67,7 @@ namespace IdentityByExamples
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
